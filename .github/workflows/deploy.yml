@@ -1,0 +1,38 @@
+name: Deploy to GitHub Packages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Permet le déclenchement manuel depuis GitHub
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: ⚙️ Configure Maven settings.xml for GitHub Packages
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+          <settings>
+            <servers>
+              <server>
+                <id>github</id>
+                <username>${{ secrets.GITHUB_ACTOR }}</username>
+                <password>${{ secrets.GITHUB_TOKEN }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
+      - name: 🛠️ Build & Deploy to GitHub Packages
+        run: ./mvnw deploy -DskipTests
