@@ -3,7 +3,7 @@ name: 📦 Déployer commun sur GitHub Packages
 on:
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 jobs:
