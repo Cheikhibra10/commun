@@ -19,6 +19,9 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Rendre mvnw exécutable
+        run: chmod +x mvnw
+
       - name: ⚙️ Configure Maven settings.xml for GitHub Packages
         run: |
           mkdir -p ~/.m2
