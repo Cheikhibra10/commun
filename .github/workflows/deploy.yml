@@ -43,6 +43,9 @@ jobs:
                   </servers>
                 </settings>" > ~/.m2/settings.xml
 
+      - name: 🛠 Rendre mvnw exécutable
+        run: chmod +x ./mvnw
+
       - name: 📦 Build et deploy
         run: |
           ./mvnw deploy -DskipTests -Drevision=${{ steps.version.outputs.revision }}
