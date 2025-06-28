@@ -1,16 +1,19 @@
-name: Deploy to GitHub Packages
+name: 📦 Build & Deploy commun
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:  # Permet le déclenchement manuel depuis GitHub
+    branches:
+      - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
+    env:
+      VERSION_BASE: 0.0.1
+
     steps:
-      - name: 📥 Checkout repository
+      - name: 🧾 Checkout
         uses: actions/checkout@v4
 
       - name: ☕ Setup Java
@@ -19,10 +22,14 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Rendre mvnw exécutable
+      - name: ✅ Rendre mvnw exécutable
         run: chmod +x mvnw
 
-      - name: ⚙️ Configure Maven settings.xml for GitHub Packages
+      - name: 🏷️ Définir la version
+        id: version
+        run: echo "revision=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
+      - name: ⚙️ Générer `settings.xml`
         run: |
           mkdir -p ~/.m2
           cat > ~/.m2/settings.xml <<EOF
@@ -30,12 +37,19 @@ jobs:
             <servers>
               <server>
                 <id>github</id>
-                <username>${{ secrets.GITHUB_ACTOR }}</username>
+                <username>${{ github.actor }}</username>
                 <password>${{ secrets.GITHUB_TOKEN }}</password>
               </server>
             </servers>
           </settings>
           EOF
 
-      - name: 🛠️ Build & Deploy to GitHub Packages
-        run: ./mvnw deploy -DskipTests
+      - name: 📦 Build & Deploy vers GitHub Packages
+        run: ./mvnw deploy -Drevision=${{ steps.version.outputs.revision }} -DskipTests
+
+      - name: 🏷️ Créer un tag Git
+        run: |
+          git config user.name github-actions
+          git config user.email actions@github.com
+          git tag v${{ env.VERSION_BASE }}-${{ steps.version.outputs.revision }}
+          git push origin v${{ env.VERSION_BASE }}-${{ steps.version.outputs.revision }}
