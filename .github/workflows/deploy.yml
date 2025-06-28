@@ -1,55 +1,55 @@
-name: 📦 Build & Deploy commun
+name: 📦 Déployer commun sur GitHub Packages
 
 on:
   push:
     branches:
-      - main
+      - master
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  build-deploy:
     runs-on: ubuntu-latest
 
-    env:
-      VERSION_BASE: 0.0.1
-
     steps:
-      - name: 🧾 Checkout
-        uses: actions/checkout@v4
+      - name: 🔃 Checkout code
+        uses: actions/checkout@v3
 
-      - name: ☕ Setup Java
-        uses: actions/setup-java@v4
+      - name: ☕ Setup Java 21
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: maven
 
-      - name: ✅ Rendre mvnw exécutable
-        run: chmod +x mvnw
-
-      - name: 🏷️ Définir la version
+      - name: 🏷️ Générer une version horodatée
         id: version
-        run: echo "revision=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+        run: |
+          echo "revision=0.0.4-$(date +%Y%m%d%H%M%S)" >> "$GITHUB_OUTPUT"
 
-      - name: ⚙️ Générer `settings.xml`
+      - name: 🔍 Afficher la version Maven utilisée
+        run: |
+          echo "🧪 Version: ${{ steps.version.outputs.revision }}"
+
+      - name: 🔐 Configurer accès GitHub Packages
         run: |
           mkdir -p ~/.m2
-          cat > ~/.m2/settings.xml <<EOF
-          <settings>
-            <servers>
-              <server>
-                <id>github</id>
-                <username>${{ github.actor }}</username>
-                <password>${{ secrets.GITHUB_TOKEN }}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
+          echo "<settings>
+                  <servers>
+                    <server>
+                      <id>github</id>
+                      <username>${{ github.actor }}</username>
+                      <password>${{ secrets.GITHUB_TOKEN }}</password>
+                    </server>
+                  </servers>
+                </settings>" > ~/.m2/settings.xml
 
-      - name: 📦 Build & Deploy vers GitHub Packages
-        run: ./mvnw deploy -Drevision=${{ steps.version.outputs.revision }} -DskipTests
+      - name: 📦 Build et deploy
+        run: |
+          ./mvnw deploy -DskipTests -Drevision=${{ steps.version.outputs.revision }}
 
       - name: 🏷️ Créer un tag Git
         run: |
-          git config user.name github-actions
-          git config user.email actions@github.com
-          git tag v${{ env.VERSION_BASE }}-${{ steps.version.outputs.revision }}
-          git push origin v${{ env.VERSION_BASE }}-${{ steps.version.outputs.revision }}
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git tag ${{ steps.version.outputs.revision }}
+          git push origin ${{ steps.version.outputs.revision }}
