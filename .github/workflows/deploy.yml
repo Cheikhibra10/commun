@@ -48,6 +48,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          repository: Cheikhibra10/pedagogie-service
+          repository: Cheikhibra10/E221_Projet
           event-type: commun-published
           client-payload: '{"version": "${{ steps.version.outputs.version }}"}'
