@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 public abstract class GenericCrudController<
@@ -44,7 +44,7 @@ public abstract class GenericCrudController<
     })
     @Auditable(value = "#{T(this).audit('update')}")
     @PutMapping("/{id}")
-    public ResponseEntity<R> update(@PathVariable Long id, @Valid @RequestBody D dto) {
+    public ResponseEntity<R> update(@PathVariable Long id,  @RequestBody D dto) {
         return ResponseEntity.ok(service.update(id, dto));
     }
 
@@ -53,8 +53,11 @@ public abstract class GenericCrudController<
     })
     @Auditable(value = "#{T(this).audit('get_all')}")
     @GetMapping
-    public ResponseEntity<List<R>> findAll() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<PageResponse<R>> findAll(
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size
+    ) {
+        return ResponseEntity.ok(service.findAll(page,size));
     }
 
     @Operation(summary = "Obtenir une entité par ID", responses = {
@@ -76,4 +79,25 @@ public abstract class GenericCrudController<
     public ResponseEntity<R> delete(@PathVariable Long id) {
         return ResponseEntity.ok(service.delete(id));
     }
+
+    @Operation(summary = "Restaurer une entité archivée", responses = {
+            @ApiResponse(responseCode = "200", description = "Entité restaurée avec succès"),
+            @ApiResponse(responseCode = "404", description = "Entité non trouvée")
+    })
+    @Auditable(value = "#{T(this).audit('restore')}")
+    @PutMapping("/{id}/restore")
+    public ResponseEntity<R> restore(@PathVariable Long id) {
+        return ResponseEntity.ok(service.restore(id));
+    }
+
+    @Operation(summary = "Mettre à jour partiellement une entité", responses = {
+            @ApiResponse(responseCode = "200", description = "Mise à jour partielle avec succès"),
+            @ApiResponse(responseCode = "404", description = "Entité non trouvée")
+    })
+    @Auditable(value = "#{T(this).audit('patch')}")
+    @PatchMapping("/{id}")
+    public ResponseEntity<R> patch(@PathVariable Long id, @RequestBody Map<String, Object> fields) {
+        return ResponseEntity.ok(service.patchFields(id, fields));
+    }
+
 }

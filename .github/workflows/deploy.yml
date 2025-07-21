@@ -23,25 +23,27 @@ jobs:
 
       - name: Generate version with timestamp
         id: version
-        run: echo "version=0.0.4-$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+        run: echo "version=0.0.5-$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
-      - name: Configure Maven settings for GitHub Packages
+      - name: Configure Maven settings
         run: |
           mkdir -p ~/.m2
-          echo "<settings>
-                  <servers>
-                    <server>
-                      <id>github</id>
-                      <username>${{ github.actor }}</username>
-                      <password>${{ secrets.GITHUB_TOKEN }}</password>
-                    </server>
-                  </servers>
-                </settings>" > ~/.m2/settings.xml
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>github</id>
+                <username>${{ github.actor }}</username>
+                <password>${{ secrets.GITHUB_TOKEN }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
 
       - name: Make mvnw executable
         run: chmod +x ./mvnw
 
-      - name: Build and deploy commun
+      - name: Build and Deploy to GitHub Packages
         run: ./mvnw deploy -DskipTests -Drevision=${{ steps.version.outputs.version }}
 
       - name: Trigger pedagogie-service build

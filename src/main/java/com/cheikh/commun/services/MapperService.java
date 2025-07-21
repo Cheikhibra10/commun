@@ -1,18 +1,15 @@
 package com.cheikh.commun.services;
 
+import com.cheikh.commun.core.PageResponse;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.stereotype.Service;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
@@ -92,6 +89,27 @@ public class MapperService {
                 field.isAnnotationPresent(OneToMany.class) ||
                 field.isAnnotationPresent(ManyToMany.class);
     }
+
+    public static <T> PageResponse<T> toPageResponse(List<T> fullList, int page, int size) {
+        int totalElements = fullList.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        int fromIndex = Math.min(page * size, totalElements);
+        int toIndex = Math.min(fromIndex + size, totalElements);
+        List<T> pageContent = fullList.subList(fromIndex, toIndex);
+
+        return PageResponse.<T>builder()
+                .content(pageContent)
+                .number(page)
+                .size(size)
+                .totalElements(totalElements)
+                .totalPages(totalPages)
+                .first(page == 0)
+                .last(page >= totalPages - 1)
+                .build();
+    }
+
+
 }
 
 

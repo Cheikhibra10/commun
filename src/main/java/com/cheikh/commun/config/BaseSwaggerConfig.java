@@ -36,16 +36,16 @@ public abstract class BaseSwaggerConfig implements WebMvcConfigurer {
                         .title(getTitle())
                         .description(getDescription())
                         .version(getVersion())
-                )
-                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
-                .components(new Components()
-                        .addSecuritySchemes("bearerAuth",
-                                new SecurityScheme()
-                                        .name("Authorization")
-                                        .type(SecurityScheme.Type.HTTP)
-                                        .scheme("bearer")
-                                        .bearerFormat("JWT")
-                        )
                 );
+//                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+//                .components(new Components()
+//                        .addSecuritySchemes("bearerAuth",
+//                                new SecurityScheme()
+//                                        .name("Authorization")
+//                                        .type(SecurityScheme.Type.HTTP)
+//                                        .scheme("bearer")
+//                                        .bearerFormat("JWT")
+//                        )
+//                );
     }
 }
