@@ -13,7 +13,7 @@ jobs:
       commun_version: ${{ steps.version.outputs.version }}
 
     steps:
-      # 1. Checkout commun repository
+      # 1. Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -25,7 +25,7 @@ jobs:
           java-version: 21
           cache: maven
 
-      # 3. Generate unique version
+      # 3. Generate unique version with timestamp
       - name: Generate version with timestamp
         id: version
         run: |
@@ -33,7 +33,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Generated version: $VERSION"
 
-      # 4. Configure Maven
+      # 4. Configure Maven settings (GitHub Packages)
       - name: Configure Maven settings
         run: |
           mkdir -p ~/.m2
@@ -49,19 +49,23 @@ jobs:
           </settings>
           EOF
 
-      # 5. Make mvnw executable
+      # 5. Make Maven Wrapper executable
       - name: Make mvnw executable
         run: chmod +x ./mvnw
 
-      # 6. Set commun version
+      # 6. Clean project to avoid old artifacts
+      - name: Clean project
+        run: ./mvnw clean
+
+      # 7. Update version in pom.xml
       - name: Set commun version
         run: ./mvnw versions:set -DnewVersion=${{ steps.version.outputs.version }} -DgenerateBackupPoms=false
 
-      # 7. Build & Deploy commun
+      # 8. Build & Deploy commun to GitHub Packages
       - name: Build and Deploy commun
         run: ./mvnw deploy -DskipTests -DretryFailedDeploymentCount=3
 
-      # 8. Trigger pedagogie-service build
+      # 9. Trigger pedagogie-service workflow
       - name: Trigger pedagogie-service build
         uses: peter-evans/repository-dispatch@v2
         with:
