@@ -9,11 +9,15 @@ on:
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+    outputs:
+      commun_version: ${{ steps.version.outputs.version }}
 
     steps:
+      # 1. Checkout commun repository
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2. Setup Java 21
       - name: Setup Java 21
         uses: actions/setup-java@v3
         with:
@@ -21,10 +25,15 @@ jobs:
           java-version: 21
           cache: maven
 
+      # 3. Generate unique version
       - name: Generate version with timestamp
         id: version
-        run: echo "version=0.0.5-$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+        run: |
+          VERSION="0.0.5-$(date +%Y%m%d%H%M%S)"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Generated version: $VERSION"
 
+      # 4. Configure Maven
       - name: Configure Maven settings
         run: |
           mkdir -p ~/.m2
@@ -40,12 +49,15 @@ jobs:
           </settings>
           EOF
 
-      - name: Make mvnw executable
-        run: chmod +x ./mvnw
+      # 5. Set commun version
+      - name: Set commun version
+        run: ./mvnw versions:set -DnewVersion=${{ steps.version.outputs.version }} -DgenerateBackupPoms=false
 
-      - name: Build and Deploy to GitHub Packages
-        run: ./mvnw deploy -DskipTests -Drevision=${{ steps.version.outputs.version }}
+      # 6. Build & Deploy commun
+      - name: Build and Deploy commun
+        run: ./mvnw deploy -DskipTests -DretryFailedDeploymentCount=3
 
+      # 7. Trigger pedagogie-service build
       - name: Trigger pedagogie-service build
         uses: peter-evans/repository-dispatch@v2
         with:
