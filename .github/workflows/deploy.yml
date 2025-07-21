@@ -49,15 +49,19 @@ jobs:
           </settings>
           EOF
 
-      # 5. Set commun version
+      # 5. Make mvnw executable
+      - name: Make mvnw executable
+        run: chmod +x ./mvnw
+
+      # 6. Set commun version
       - name: Set commun version
         run: ./mvnw versions:set -DnewVersion=${{ steps.version.outputs.version }} -DgenerateBackupPoms=false
 
-      # 6. Build & Deploy commun
+      # 7. Build & Deploy commun
       - name: Build and Deploy commun
         run: ./mvnw deploy -DskipTests -DretryFailedDeploymentCount=3
 
-      # 7. Trigger pedagogie-service build
+      # 8. Trigger pedagogie-service build
       - name: Trigger pedagogie-service build
         uses: peter-evans/repository-dispatch@v2
         with:
