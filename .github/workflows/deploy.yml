@@ -9,8 +9,6 @@ on:
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
-    outputs:
-      commun_version: ${{ steps.version.outputs.version }}
 
     steps:
       # 1. Checkout code
@@ -49,28 +47,43 @@ jobs:
           </settings>
           EOF
 
-      # 5. Make Maven Wrapper executable
+      # 5. Make mvnw executable
       - name: Make mvnw executable
         run: chmod +x ./mvnw
 
-      # 6. Clean project to avoid old artifacts
-      - name: Clean project
-        run: ./mvnw clean
+      # 6. Clean project and remove old artifacts
+      - name: Force clean repository
+        run: |
+          rm -rf ~/.m2/repository/com/cheikh/commun
+          ./mvnw clean
 
-      # 7. Set commun version (force rewrite)
+      # 7. Set commun version (force rewrite in pom.xml)
       - name: Set commun version
         run: |
-          ./mvnw -B -U versions:set \
+          ./mvnw -B versions:set \
             -DnewVersion=${{ steps.version.outputs.version }} \
             -DprocessAllModules=true \
             -DprocessParent=true \
             -DrewritePomVersions=true \
             -DgenerateBackupPoms=false
 
-      # 8. Show effective version (debug)
-      - name: Show effective project version
-        run: ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout
+      # 8. Debug effective version and artifact
+      - name: Debug Maven Version
+        run: |
+          echo "Effective Maven Project Version:"
+          ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout
+          echo "Content of target directory:"
+          ls -lh target/ || echo "target/ is empty"
 
-      # 9. Build & Deploy commun
+      # 9. Build & Deploy commun (force version to avoid 409)
       - name: Build and Deploy commun
-        run: ./mvnw deploy -DskipTests -DretryFailedDeploymentCount=3
+        run: ./mvnw deploy -DskipTests -Drevision=${{ steps.version.outputs.version }} -DretryFailedDeploymentCount=3
+
+      # 10. Trigger pedagogie-service build
+      - name: Trigger pedagogie-service build
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: Cheikhibra10/E221_Projet
+          event-type: commun-published
+          client-payload: '{"version": "${{ steps.version.outputs.version }}"}'
