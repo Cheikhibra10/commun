@@ -57,7 +57,7 @@ jobs:
           rm -rf ~/.m2/repository/com/cheikh/commun
           ./mvnw clean
 
-      # 7. Set commun version (force rewrite in pom.xml)
+      # 7. Set commun version
       - name: Set commun version
         run: |
           ./mvnw -B versions:set \
@@ -72,8 +72,10 @@ jobs:
         run: |
           echo "Effective Maven Project Version:"
           ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout
+          echo "Building project..."
+          ./mvnw package -DskipTests
           echo "Content of target directory:"
-          ls -lh target/ || echo "target/ is empty"
+          ls -lh target/
 
       # 9. Build & Deploy commun (force version to avoid 409)
       - name: Build and Deploy commun
