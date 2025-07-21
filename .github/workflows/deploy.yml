@@ -57,19 +57,20 @@ jobs:
       - name: Clean project
         run: ./mvnw clean
 
-      # 7. Update version in pom.xml
+      # 7. Set commun version (force rewrite)
       - name: Set commun version
-        run: ./mvnw versions:set -DnewVersion=${{ steps.version.outputs.version }} -DgenerateBackupPoms=false
+        run: |
+          ./mvnw -B -U versions:set \
+            -DnewVersion=${{ steps.version.outputs.version }} \
+            -DprocessAllModules=true \
+            -DprocessParent=true \
+            -DrewritePomVersions=true \
+            -DgenerateBackupPoms=false
 
-      # 8. Build & Deploy commun to GitHub Packages
+      # 8. Show effective version (debug)
+      - name: Show effective project version
+        run: ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout
+
+      # 9. Build & Deploy commun
       - name: Build and Deploy commun
         run: ./mvnw deploy -DskipTests -DretryFailedDeploymentCount=3
-
-      # 9. Trigger pedagogie-service workflow
-      - name: Trigger pedagogie-service build
-        uses: peter-evans/repository-dispatch@v2
-        with:
-          token: ${{ secrets.PAT_TOKEN }}
-          repository: Cheikhibra10/E221_Projet
-          event-type: commun-published
-          client-payload: '{"version": "${{ steps.version.outputs.version }}"}'
