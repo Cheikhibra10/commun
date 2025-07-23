@@ -13,6 +13,6 @@ public interface DefaultService<T, D, R> {
     R archive(Long id);
     R getById(Long id);
     T getEntityById(Long id);
-    public R restore(Long id);
-    public R patchFields(Long id, Map<String, Object> fields);
+     R restore(Long id);
+     R patchFields(Long id, Map<String, Object> fields);
 }

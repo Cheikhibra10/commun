@@ -1,17 +1,26 @@
 package com.cheikh.commun.exceptions;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.LocalDateTime;
 
-@Getter
-@Setter
 public class ExceptionSchema {
 
-    private String message;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+    private LocalDateTime timestamp;
+    private int status;
+    private String error;
+    private String path;
 
-    protected ExceptionSchema() {}
-
-    public ExceptionSchema(String message) {
-        this.message = message;
+    public ExceptionSchema(int status, String error, String path) {
+        this.timestamp = LocalDateTime.now();
+        this.status = status;
+        this.error = error;
+        this.path = path;
     }
+
+    // Getters
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public int getStatus() { return status; }
+    public String getError() { return error; }
+    public String getPath() { return path; }
 }
