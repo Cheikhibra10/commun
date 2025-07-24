@@ -9,6 +9,7 @@ public interface DefaultService<T, D, R> {
     R create(D d);
     R update(long id, D d);
     PageResponse<R> findAll(int page, int size);
+    PageResponse<R> findAllArchive(int page, int size);
     R delete(Long id);
     R archive(Long id);
     R getById(Long id);

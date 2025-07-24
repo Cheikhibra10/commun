@@ -1,10 +1,14 @@
 package com.cheikh.commun.exceptions;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Getter;
+
 import java.time.LocalDateTime;
 
+@Getter
 public class ExceptionSchema {
 
+    // Getters
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private LocalDateTime timestamp;
     private int status;
@@ -18,9 +22,4 @@ public class ExceptionSchema {
         this.path = path;
     }
 
-    // Getters
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public int getStatus() { return status; }
-    public String getError() { return error; }
-    public String getPath() { return path; }
 }
