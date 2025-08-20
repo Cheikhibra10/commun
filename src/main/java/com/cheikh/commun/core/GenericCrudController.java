@@ -59,7 +59,17 @@ public abstract class GenericCrudController<
     ) {
         return ResponseEntity.ok(service.findAll(page,size));
     }
-
+    @Operation(summary = "Lister toutes les entités", responses = {
+            @ApiResponse(responseCode = "200", description = "Liste récupérée")
+    })
+    @Auditable(value = "#{T(this).audit('get_all')}")
+    @GetMapping
+    public ResponseEntity<PageResponse<R>> findAllArchived(
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size
+    ) {
+        return ResponseEntity.ok(service.findAllArchive(page,size));
+    }
     @Operation(summary = "Obtenir une entité par ID", responses = {
             @ApiResponse(responseCode = "200", description = "Trouvée"),
             @ApiResponse(responseCode = "404", description = "Non trouvée")
